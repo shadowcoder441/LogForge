@@ -1,3 +1,7 @@
+app.get('/', (req, res) => {
+  res.send('LogForge API is running 🚀');
+});
+
 const express = require('express');
 const app = express();
 

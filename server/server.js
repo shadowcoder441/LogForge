@@ -3,20 +3,36 @@ app.get('/', (req, res) => {
 });
 
 const express = require('express');
+const Redis = require('ioredis');
+
 const app = express();
 
 let logs = [];
 
-app.use(express.json());
+let redis;
+try {
+  redis = new Redis(process.env.REDIS_URL);
+  redis.on('connect', () => console.log('Redis connected'));
+  redis.on('error', () => console.log('Redis not available, using memory'));
+} catch {
+  console.log('Redis not available, using memory');
+}
 
-app.post('/log', (req, res) => {
-  logs.unshift(req.body);
-  logs = logs.slice(0, 50);
-  res.json({ status: 'ok' });
+app.get('/', (req, res) => {
+  res.send('LogForge API is running 🚀');
 });
 
-app.get('/logs/recent', (req, res) => {
-  res.json(logs);
+app.get('/logs/recent', async (req, res) => {
+  try {
+    if (redis) {
+      const data = await redis.lrange('logs', 0, 49);
+      return res.json(data.map(JSON.parse));
+    } else {
+      return res.json(logs);
+    }
+  } catch {
+    return res.json(logs);
+  }
 });
 
 app.listen(3000, () => {

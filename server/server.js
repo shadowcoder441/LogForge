@@ -1,17 +1,21 @@
 const express = require('express');
+const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Middleware (for future POST requests)
+// ✅ CORS middleware (fixes your issue)
+app.use(cors());
+
+// Middleware to parse JSON
 app.use(express.json());
 
-// In-memory storage (fallback for cloud deployment)
+const PORT = process.env.PORT || 3000;
+
+// In-memory storage (for demo)
 let logs = [];
 
 /**
  * Root route
- * Used to verify that the API is running
  */
 app.get('/', (req, res) => {
   res.send('LogForge API is running 🚀');
@@ -19,19 +23,18 @@ app.get('/', (req, res) => {
 
 /**
  * Get recent logs
- * Returns last 50 logs
  */
 app.get('/logs/recent', (req, res) => {
   res.json(logs);
 });
 
 /**
- * Optional: Add log manually (useful for testing via Postman/frontend)
+ * Add log
  */
 app.post('/log', (req, res) => {
   const log = req.body;
 
-  logs.unshift(log);       // add to beginning
+  logs.unshift(log);        // add new log at start
   logs = logs.slice(0, 50); // keep only latest 50
 
   res.json({ status: 'log stored' });
